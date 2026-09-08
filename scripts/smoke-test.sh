@@ -112,6 +112,23 @@ check "runs are recorded" "$(curl -fsS "${BASE}/v1/runs")" '"run_id"'
 check "audit events are recorded" "$(curl -fsS "${BASE}/v1/audit")" 'agent.run'
 
 echo
+
+echo "--- the scenario gate, inside the image"
+# The suite is copied into the image so it can be run against exactly the
+# artifact that would be deployed. Running it here is what makes that claim
+# true: a build that ships a stale suite, a missing data file or a regressed
+# agent fails the smoke test rather than passing it silently.
+evaluation="$(mktemp)"
+if docker exec "${NAME}" support-agent evaluate \
+  --suite data/scenarios/support.jsonl --min-pass-rate 1.0 >"${evaluation}" 2>&1; then
+  echo "  ok    the shipped image passes its own scenario gate"
+else
+  echo "  FAIL  the shipped image did not pass its own scenario gate"
+  tail -25 "${evaluation}"
+  failures=$((failures + 1))
+fi
+rm -f "${evaluation}"
+
 if [[ "${failures}" -gt 0 ]]; then
   echo "smoke test FAILED for ${IMAGE}: ${failures} check(s) did not pass"
   exit 1
