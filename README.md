@@ -5,10 +5,13 @@
 [![Container](https://github.com/kogunlowo123/ai-support-agent/actions/workflows/docker.yml/badge.svg)](https://github.com/kogunlowo123/ai-support-agent/actions/workflows/docker.yml)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Documentation](https://github.com/kogunlowo123/ai-support-agent/actions/workflows/pages.yml/badge.svg)](https://kogunlowo123.github.io/ai-support-agent/)
 
 A customer support agent that is bounded by construction: an explicit state
 machine, a permissioned tool registry, policy computed in code, and a verifier
 that refuses to send any sentence asserting a fact no tool returned.
+
+**Documentation:** <https://kogunlowo123.github.io/ai-support-agent/>
 
 ---
 
