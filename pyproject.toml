@@ -1,0 +1,178 @@
+[project]
+name = "support-agent"
+version = "0.1.0"
+description = "A bounded AI support agent: an explicit state machine, a permissioned tool registry, deterministic policy evaluation, and a verifier that refuses any answer asserting facts no tool returned."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+authors = [{ name = "Kehinde Ogunlowo" }]
+keywords = ["ai-agent", "tool-calling", "llm", "prompt-injection", "guardrails", "fastapi"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+  "fastapi>=0.141.1,<0.142",
+  "starlette>=1.3.1,<2",
+  "uvicorn[standard]>=0.40,<0.41",
+  "pydantic>=2.12,<3",
+  "pydantic-settings>=2.13,<3",
+  "sqlalchemy>=2.0.44,<2.1",
+  "aiosqlite>=0.21,<0.22",
+  "structlog>=25.5,<26",
+  "httpx>=0.28,<0.29",
+  "opentelemetry-api>=1.39,<2",
+  "opentelemetry-sdk>=1.39,<2",
+  "opentelemetry-instrumentation-fastapi>=0.60b0",
+  "opentelemetry-exporter-otlp-proto-http>=1.39,<2",
+]
+
+[project.optional-dependencies]
+# PostgreSQL backend for the conversation and audit stores.
+postgres = ["psycopg[binary]>=3.2,<4"]
+
+[project.scripts]
+support-agent = "support_agent.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/kogunlowo123/ai-support-agent"
+Source = "https://github.com/kogunlowo123/ai-support-agent"
+Issues = "https://github.com/kogunlowo123/ai-support-agent/issues"
+
+[dependency-groups]
+dev = [
+  "pytest>=9.0.3,<10",
+  "pytest-asyncio>=1.3,<2",
+  "pytest-cov>=7.0,<8",
+  "ruff>=0.16.6,<0.17",
+  "mypy>=1.19,<2",
+  "bandit>=1.9,<2",
+  "respx>=0.23.1,<0.24",
+  "asgi-lifespan>=2.1,<3",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/support_agent"]
+
+# --------------------------------------------------------------------------
+# Lint and format
+# --------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "E", "W", "F", "I", "N", "UP", "B", "A", "C4", "DTZ", "T20", "PT", "RET",
+  "SIM", "TID", "PTH", "ERA", "PL", "TRY", "RUF", "S", "ASYNC", "ANN", "D",
+]
+ignore = [
+  "D203",    # incompatible with D211
+  "D213",    # incompatible with D212
+  "ANN401",  # explicit Any is the correct type for provider and tool payloads
+  "TRY003",  # a long message at the raise site beats one exception class per message
+  "PLR0913", # constructor injection legitimately takes several collaborators
+  # Prose in docstrings uses en/em dashes and curly quotes. These rules exist to
+  # catch homoglyph confusion in identifiers, not typography in documentation;
+  # the security-relevant case is handled by support_agent.security.normalization.
+  "RUF001", "RUF002", "RUF003",
+  # Several imports are deliberately deferred: OTLP exporters and instrumentation
+  # that must not be imported when tracing is disabled. Each site carries a comment.
+  "PLC0415",
+  # This project runs on asyncio, not trio; the rule's suggested replacements are
+  # not dependencies here.
+  "ASYNC240",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+  "S101", "S104", "S105", "S106",
+  "D100", "D101", "D102", "D103", "D104", "D105", "D107", "D401",
+  "PLR2004", "ANN201", "ANN001", "RUF012",
+]
+"src/support_agent/cli.py" = ["T20"]
+"src/support_agent/evaluation/**" = ["T20"]
+"tasks.py" = ["D", "T20", "ANN"]
+"tasks_local.py" = ["D", "ANN"]
+# A FastAPI route signature declares the request surface; every parameter is
+# bound by name from the path, query, body or dependency graph.
+"src/support_agent/api/routes/**" = ["PLR0917"]
+"examples/**" = ["T20", "D401"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["support_agent"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+# --------------------------------------------------------------------------
+# Types
+# --------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+files = ["src", "tests", "tasks.py"]
+strict = true
+warn_unreachable = true
+disallow_any_generics = true
+show_error_codes = true
+pretty = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["opentelemetry.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_decorators = false
+
+# --------------------------------------------------------------------------
+# Tests
+# --------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+  "unit: pure logic, no I/O and no network",
+  "integration: component wiring against real local storage and an in-process HTTP client",
+  "security: adversarial cases; a failure is a security regression",
+  "e2e: full path through the running application",
+  "regression: the scenario suite; a failure means the agent behaves differently",
+]
+filterwarnings = ["error", "ignore::DeprecationWarning:httpx.*"]
+
+[tool.coverage.run]
+source = ["src/support_agent"]
+branch = true
+omit = ["src/support_agent/__main__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_also = [
+  'if TYPE_CHECKING:',
+  'raise NotImplementedError',
+  '@(abc\.)?abstractmethod',
+  'class .*\(Protocol\):',
+  '^\s*\.\.\.$',
+]
+
+# --------------------------------------------------------------------------
+# Security static analysis
+# --------------------------------------------------------------------------
+[tool.bandit]
+exclude_dirs = ["tests", ".venv", "build", "dist"]

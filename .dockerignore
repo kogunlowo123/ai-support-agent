@@ -1,0 +1,29 @@
+.git
+.github
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+coverage.xml
+htmlcov
+dist
+build
+*.egg-info
+docs
+tests
+# The scenario suite ships in the image so the gate can run against the exact
+# artifact that would be deployed. Everything else under data/ is local state.
+data
+!data/scenarios
+var
+*.db
+*.sqlite3
+.env
+.env.*
+!.env.example
+Dockerfile
+docker-compose.yml
