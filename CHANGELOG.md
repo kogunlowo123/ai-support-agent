@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+* Dependency and action updates, applied as one set so the lock file resolves
+  once: mypy 1.20.2 to 2.3.1, structlog 25.5 to 26.1, aiosqlite 0.21 to 0.22.1,
+  the `uvicorn[standard]` cap from `<0.41` to `<0.53`, and `actions/checkout`
+  v5 to v7, `actions/upload-artifact` v4 to v7, `docker/build-push-action` v6
+  to v7 and `docker/setup-buildx-action` v3 to v4.
+
+### Fixed
+
+* `reports/` and `requirements.audit.txt` are ignored. Both are outputs of a
+  run rather than inputs to one, and a committed report can stand in for a run
+  that never happened.
 
 ## [0.1.0] - 2026-09-07
 
