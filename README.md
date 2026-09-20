@@ -2,6 +2,8 @@
 
 ![Banner](docs/banner.png)
 
+**Built by [Citadel Cloud Management](https://www.linkedin.com/company/citadel-cloud-management/)** — follow on LinkedIn for more engineering work like this.
+
 > If this project is useful, a star helps other engineers find it.
 
 [![CI](https://github.com/kogunlowo123/ai-support-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/kogunlowo123/ai-support-agent/actions/workflows/ci.yml)
